@@ -27,7 +27,10 @@ HA_TOKEN: str = _SUPERVISOR_TOKEN or _HA_TOKEN
 _HA_URL = os.environ.get("HA_URL", "").rstrip("/")
 HA_BASE_URL = _HA_URL or "http://supervisor/core"
 HA_WS_URL = (
-    (_HA_URL.replace("https://", "wss://").replace("http://", "ws://") + "/websocket")
+    (
+        _HA_URL.replace("https://", "wss://").replace("http://", "ws://")
+        + "/api/websocket"
+    )
     if _HA_URL
     else "ws://supervisor/core/websocket"
 )
