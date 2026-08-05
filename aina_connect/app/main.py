@@ -17,9 +17,20 @@ logger = logging.getLogger(__name__)
 
 AINA_SERVER: str = os.environ["AINA_SERVER"].rstrip("/")
 PAIRING_CODE: str = os.environ.get("PAIRING_CODE", "")
-SUPERVISOR_TOKEN: str = os.environ.get("SUPERVISOR_TOKEN", "")
-HA_BASE_URL = "http://supervisor/core"
-HA_WS_URL = "ws://supervisor/core/websocket"
+
+# In HA OS add-on context SUPERVISOR_TOKEN is injected automatically.
+# In standalone Docker mode, HA_TOKEN (a Long-Lived Access Token) is used instead.
+_SUPERVISOR_TOKEN: str = os.environ.get("SUPERVISOR_TOKEN", "")
+_HA_TOKEN: str = os.environ.get("HA_TOKEN", "")
+HA_TOKEN: str = _SUPERVISOR_TOKEN or _HA_TOKEN
+
+_HA_URL = os.environ.get("HA_URL", "").rstrip("/")
+HA_BASE_URL = _HA_URL or "http://supervisor/core"
+HA_WS_URL = (
+    (_HA_URL.replace("https://", "wss://").replace("http://", "ws://") + "/websocket")
+    if _HA_URL
+    else "ws://supervisor/core/websocket"
+)
 RELAY_TOKEN_PATH = pathlib.Path("/data/relay_token")
 HEARTBEAT_INTERVAL = 30
 RECONNECT_DELAY = 5
@@ -49,7 +60,7 @@ def _save_relay_token(token: str) -> None:
 async def _proxy_request(method: str, path: str, body: object) -> tuple[int, object]:
     url = f"{HA_BASE_URL}{path}"
     headers = {
-        "Authorization": f"Bearer {SUPERVISOR_TOKEN}",
+        "Authorization": f"Bearer {HA_TOKEN}",
         "Content-Type": "application/json",
     }
     try:
@@ -90,7 +101,7 @@ async def _fetch_registries() -> dict:
         if auth_req.get("type") != "auth_required":
             raise RuntimeError(f"Unexpected HA WS message: {auth_req}")
 
-        await ha_ws.send(json.dumps({"type": "auth", "access_token": SUPERVISOR_TOKEN}))
+        await ha_ws.send(json.dumps({"type": "auth", "access_token": HA_TOKEN}))
         auth_result = json.loads(await ha_ws.recv())
         if auth_result.get("type") != "auth_ok":
             raise RuntimeError("HA WebSocket auth failed")

@@ -1,11 +1,9 @@
-ARG BUILD_FROM
-FROM $BUILD_FROM
+FROM python:3.12-alpine
 
-RUN apk add --no-cache python3 py3-pip
 WORKDIR /app
 COPY app/requirements.txt .
-RUN pip3 install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 COPY app/ .
-COPY run.sh /run.sh
-RUN chmod +x /run.sh
-CMD ["/run.sh"]
+
+VOLUME ["/data"]
+CMD ["python3", "main.py"]
