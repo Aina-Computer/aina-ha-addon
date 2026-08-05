@@ -1,0 +1,16 @@
+name: Aina Connect
+version: "1.0.0"
+slug: aina_connect
+description: Connect your Home Assistant to Aina AI
+url: https://aina.co
+arch:
+  - aarch64
+  - armv7
+  - amd64
+options:
+  pairing_code: ""
+  aina_server: "https://api.aina.co"
+schema:
+  pairing_code: str
+  aina_server: str
+init: false
