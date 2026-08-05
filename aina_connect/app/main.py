@@ -71,7 +71,14 @@ async def _proxy_request(method: str, path: str, body: object) -> tuple[int, obj
                 headers=headers,
                 json=body if body is not None else None,
             )
-        return resp.status_code, resp.json()
+        try:
+            return resp.status_code, resp.json()
+        except Exception:
+            # HA occasionally returns plain text (e.g. "401 Unauthorized")
+            logger.warning(
+                f"HA returned non-JSON: status={resp.status_code} body={resp.text[:100]!r}"
+            )
+            return resp.status_code, {"_text": resp.text}
     except Exception as exc:
         logger.error(f"HA HTTP proxy error: {exc}")
         return 502, {"error": str(exc)}
