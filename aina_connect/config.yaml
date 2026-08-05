@@ -13,4 +13,5 @@ options:
 schema:
   pairing_code: str
   aina_server: str
+image: "ghcr.io/aina-computer/aina-ha-addon:latest"
 init: false
